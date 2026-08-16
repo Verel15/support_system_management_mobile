@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'core/di/injection.dart';
 import 'core/router/app_router.dart';
+import 'core/storage/onboarding_storage.dart';
 import 'ui/auth/bloc/auth_bloc.dart';
 import 'ui/auth/bloc/auth_event.dart';
 import 'ui/core/themes/app_theme.dart';
@@ -17,7 +18,7 @@ class App extends StatelessWidget {
       child: Builder(
         builder: (context) {
           final authBloc = context.read<AuthBloc>();
-          final router = buildAppRouter(authBloc);
+          final router = buildAppRouter(authBloc, getIt<OnboardingStorage>());
 
           return MaterialApp.router(
             title: 'Support System',

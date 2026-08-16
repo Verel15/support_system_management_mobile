@@ -13,6 +13,7 @@ import 'package:cookie_jar/cookie_jar.dart' as _i557;
 import 'package:dio/dio.dart' as _i361;
 import 'package:get_it/get_it.dart' as _i174;
 import 'package:injectable/injectable.dart' as _i526;
+import 'package:shared_preferences/shared_preferences.dart' as _i460;
 
 import '../../data/repositories/auth_repository.dart' as _i481;
 import '../../data/services/auth_service.dart' as _i117;
@@ -21,6 +22,8 @@ import '../network/auth_session.dart' as _i195;
 import '../network/dio_client.dart' as _i667;
 import '../network/interceptors/auth_interceptor.dart' as _i745;
 import '../network/token_refresher.dart' as _i1058;
+import '../storage/onboarding_storage.dart' as _i84;
+import '../storage/shared_preferences_module.dart' as _i737;
 
 // initializes the registration of main-scope dependencies inside of GetIt
 Future<_i174.GetIt> init(
@@ -30,13 +33,21 @@ Future<_i174.GetIt> init(
 }) async {
   final gh = _i526.GetItHelper(getIt, environment, environmentFilter);
   final networkModule = _$NetworkModule();
+  final sharedPreferencesModule = _$SharedPreferencesModule();
   gh.lazySingleton<_i195.AuthSession>(() => _i195.AuthSession());
   await gh.lazySingletonAsync<_i557.CookieJar>(
     () => networkModule.cookieJar(),
     preResolve: true,
   );
+  await gh.lazySingletonAsync<_i460.SharedPreferences>(
+    () => sharedPreferencesModule.prefs,
+    preResolve: true,
+  );
   gh.lazySingleton<_i1058.TokenRefresher>(
     () => _i1058.TokenRefresher(gh<_i195.AuthSession>(), gh<_i557.CookieJar>()),
+  );
+  gh.lazySingleton<_i84.OnboardingStorage>(
+    () => _i84.OnboardingStorage(gh<_i460.SharedPreferences>()),
   );
   gh.factory<_i745.AuthInterceptor>(
     () => _i745.AuthInterceptor(
@@ -64,3 +75,5 @@ Future<_i174.GetIt> init(
 }
 
 class _$NetworkModule extends _i667.NetworkModule {}
+
+class _$SharedPreferencesModule extends _i737.SharedPreferencesModule {}
