@@ -1,3 +1,4 @@
 {
-    "robotcode.disableExtension": true
+    "robotcode.disableExtension": true,
+    "cmake.ignoreCMakeListsMissing": true
 }

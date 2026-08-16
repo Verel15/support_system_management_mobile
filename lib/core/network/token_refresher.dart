@@ -1,24 +1,27 @@
 import 'dart:async';
 
+import 'package:cookie_jar/cookie_jar.dart';
 import 'package:dio/dio.dart';
+import 'package:dio_cookie_manager/dio_cookie_manager.dart';
 import 'package:injectable/injectable.dart';
 
 import '../config/app_config.dart';
 import '../constants/api_paths.dart';
 import 'auth_session.dart';
-import 'secure_token_storage.dart';
 
-/// Refreshes the access token using the stored refresh token.
+/// Refreshes the access token using the refresh token stored in an httpOnly
+/// cookie — the app never reads its value, [CookieManager] attaches it to
+/// the request automatically.
 ///
-/// Uses its own bare [Dio] instance (no interceptors) so it can never
-/// recursively trigger [AuthInterceptor]'s 401 handling.
+/// Uses its own bare [Dio] instance (no [AuthInterceptor]) so it can never
+/// recursively trigger 401 handling.
 @lazySingleton
 class TokenRefresher {
-  TokenRefresher(this._authSession, this._tokenStorage)
-      : _refreshDio = Dio(BaseOptions(baseUrl: AppConfig.apiBaseUrl));
+  TokenRefresher(this._authSession, CookieJar cookieJar)
+      : _refreshDio = Dio(BaseOptions(baseUrl: AppConfig.apiBaseUrl))
+          ..interceptors.add(CookieManager(cookieJar));
 
   final AuthSession _authSession;
-  final SecureTokenStorage _tokenStorage;
   final Dio _refreshDio;
 
   Completer<bool>? _inFlightRefresh;
@@ -40,23 +43,13 @@ class TokenRefresher {
   }
 
   Future<bool> _doRefresh() async {
-    final refreshToken = await _tokenStorage.readRefreshToken();
-    if (refreshToken == null) return false;
-
     try {
-      final response = await _refreshDio.post<Map<String, dynamic>>(
-        ApiPaths.refresh,
-        data: {'refreshToken': refreshToken},
-      );
-      final data = response.data;
-      if (data == null) return false;
-
-      final newAccessToken = data['accessToken'] as String?;
-      final newRefreshToken = data['refreshToken'] as String?;
-      if (newAccessToken == null || newRefreshToken == null) return false;
+      final response = await _refreshDio.post<Map<String, dynamic>>(ApiPaths.refresh);
+      final data = response.data?['data'] as Map<String, dynamic>?;
+      final newAccessToken = data?['accessToken'] as String?;
+      if (newAccessToken == null) return false;
 
       _authSession.setAccessToken(newAccessToken);
-      await _tokenStorage.saveRefreshToken(newRefreshToken);
       return true;
     } on DioException {
       return false;

@@ -2,16 +2,14 @@ import 'package:dio/dio.dart';
 import 'package:injectable/injectable.dart';
 
 import '../auth_session.dart';
-import '../secure_token_storage.dart';
 import '../token_refresher.dart';
 
 @injectable
 class AuthInterceptor extends Interceptor {
-  AuthInterceptor(this._authSession, this._tokenRefresher, this._tokenStorage);
+  AuthInterceptor(this._authSession, this._tokenRefresher);
 
   final AuthSession _authSession;
   final TokenRefresher _tokenRefresher;
-  final SecureTokenStorage _tokenStorage;
 
   /// Set by [DioClient] right after constructing the [Dio] instance this
   /// interceptor is attached to, so a 401 retry can reuse the exact same
@@ -42,7 +40,6 @@ class AuthInterceptor extends Interceptor {
 
     final refreshed = await _tokenRefresher.refresh();
     if (!refreshed) {
-      await _tokenStorage.clearRefreshToken();
       _authSession.notifyForceLogout();
       return handler.next(err);
     }

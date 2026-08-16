@@ -3,9 +3,9 @@ import 'dart:async';
 import 'package:injectable/injectable.dart';
 
 /// Holds the current access token in memory only (never persisted to disk).
-/// Refresh token lives in secure storage, owned by the auth feature's
-/// repository — this class is intentionally feature-agnostic so `core/`
-/// never depends on `features/auth`.
+/// Refresh token lives in secure storage, owned by `AuthRepository` — this
+/// class is intentionally feature-agnostic so `core/` never depends on
+/// `data/` or `ui/`.
 @lazySingleton
 class AuthSession {
   String? _accessToken;

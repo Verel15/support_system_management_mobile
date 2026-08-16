@@ -1,15 +1,15 @@
 import 'package:go_router/go_router.dart';
 
-import '../../features/auth/presentation/bloc/auth_bloc.dart';
-import '../../features/auth/presentation/bloc/auth_state.dart';
-import '../../features/auth/presentation/pages/login_page.dart';
-import '../../features/tickets/presentation/pages/ticket_list_page.dart';
+import '../../ui/auth/bloc/auth_bloc.dart';
+import '../../ui/auth/bloc/auth_state.dart';
+import '../../ui/auth/widgets/login_page.dart';
+import '../../ui/tickets/widgets/ticket_list_page.dart';
 import 'go_router_refresh_stream.dart';
 
 class AppRoutes {
   AppRoutes._();
 
-  static const String login = '/login';
+  static const String login = '/api/v1/auth/login';
   static const String tickets = '/tickets';
 }
 
